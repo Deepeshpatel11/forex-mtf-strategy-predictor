@@ -4,6 +4,7 @@ matplotlib
 seaborn
 plotly
 scikit-learn
-yfinance
+oandapyV20
 streamlit
 joblib
+python-dotenv
