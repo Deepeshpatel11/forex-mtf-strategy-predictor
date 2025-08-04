@@ -60,3 +60,33 @@ def calculate_support_resistance(df: pd.DataFrame, freq: str = 'W', tolerance: f
     ).astype(int)
 
     return df
+
+def merge_multi_timeframe_features(df_4h, df_1d, df_1w):
+    """
+    Merge 4H, 1D, and 1W features into a single 4H ML-ready dataset.
+
+    Steps:
+    1. Resample 1D and 1W data to 4H and forward-fill.
+    2. Join higher timeframe features to 4H candles.
+    3. Forward-fill missing values and drop early NaNs.
+    """
+    # Resample higher TF to 4H
+    df_1d_res = df_1d.set_index('timestamp').resample('4H').ffill()
+    df_1w_res = df_1w.set_index('timestamp').resample('4H').ffill()
+
+    # Merge into 4H
+    df_4h = df_4h.set_index('timestamp')
+    df_merged = df_4h.join(df_1d_res, rsuffix='_1D')
+    df_merged = df_merged.join(df_1w_res, rsuffix='_1W')
+
+    # Reset timestamp
+    df_merged.reset_index(inplace=True)
+
+    # Forward-fill all NaNs (mainly first few rows)
+    df_merged.ffill(inplace=True)
+
+    # Drop any remaining NaNs (ensures ML-ready dataset)
+    df_merged.dropna(inplace=True)
+
+    return df_merged
+
